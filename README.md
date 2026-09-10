@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HungYuan Lo portfolio
 
-## Getting Started
+An evidence-led portfolio built with Next.js 16, React 19, TypeScript, React Three Fiber, GSAP, Lenis, and Tailwind CSS.
 
-First, run the development server:
+Project copy and links are derived from the public repositories at [github.com/5Gswatergod](https://github.com/5Gswatergod). Repository assets are labelled as such; the Ollama Models Manager artwork is explicitly labelled as a concept visual.
+
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The public site is deployed through GitHub Pages at [5gswatergod.github.io](https://5gswatergod.github.io/). Pushes to `master` run the verified static-export workflow in `.github/workflows/pages.yml`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Verification
 
-## Learn More
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Production metadata
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The Pages workflow sets `NEXT_PUBLIC_SITE_URL` to the production origin. For any other host, copy `.env.example` to `.env.local` and set the variable to that deployed origin.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Interaction shortcuts
 
-## Deploy on Vercel
+- `Ctrl/Cmd + K`: command palette
+- `Ctrl/Cmd + backtick`: terminal
+- Five quick clicks on the `HL` mark: developer HUD
+- Konami sequence: brief signal glitch
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Sound is off by default and only begins after the visitor explicitly enables it.

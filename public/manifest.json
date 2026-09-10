@@ -1,0 +1,17 @@
+{
+  "name": "HungYuan Lo Portfolio",
+  "short_name": "HL Portfolio",
+  "description": "Creative Developer · AI Engineer · Full-Stack Builder",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030304",
+  "theme_color": "#030304",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
