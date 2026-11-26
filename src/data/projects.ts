@@ -23,7 +23,7 @@ export interface Project {
   year: number;
   category: ProjectCategory[];
   technologies: string[];
-  github: string;
+  github?: string;
   liveUrl?: string;
   featured: boolean;
   fork?: boolean;
@@ -42,7 +42,7 @@ export interface Project {
 
 const github = (repo: string) => `https://github.com/5Gswatergod/${repo}`;
 
-/** Repository-backed content researched from the public GitHub account on 2026-09-10. */
+/** Public project index reviewed on 2026-11-26. */
 export const projects: Project[] = [
   {
     id: 'mahjong',
@@ -205,6 +205,20 @@ export const projects: Project[] = [
     ],
   },
   {
+    id: 'avoid-overkill', name: 'Avoid Overkill', repoName: 'avoid-overkill',
+    tagline: 'Engineering judgment for coding agents',
+    description: 'A Traditional Chinese skill that helps coding agents decide when to reuse a component, extend it, or build a small replacement.',
+    longDescription: 'I adapted the original Avoid Overkill skill for Traditional Chinese workflows. Its review scenarios ask concrete questions: can an existing helper handle an empty array, and is it safe to retry a payment after a timeout? The guidance pairs each decision with a check the agent can perform.',
+    year: 2026, category: ['tools', 'ai', 'experiments'], technologies: ['Markdown'], github: github('avoid-overkill'), featured: false, accent: '#7ce7d7',
+    evidence: ['SKILL.md contains the agent instructions. The README credits the upstream author and provides review scenarios.'],
+  },
+  {
+    id: 'portfolio', name: 'Interactive Portfolio', repoName: '5Gswatergod.github.io',
+    tagline: 'The site behind this project archive',
+    description: 'A static portfolio pairing project case studies with an interactive 3D homepage. Each case study links the tools used to examples from the project.',
+    year: 2026, category: ['web'], technologies: ['TypeScript', 'Next.js', 'React', 'React Three Fiber', 'GSAP', 'GitHub Actions'], github: github('5Gswatergod.github.io'), featured: false, accent: '#7ce7d7',
+  },
+  {
     id: 'smartflow-budget-tracker', name: 'SmartFlow Budget Tracker', repoName: 'SmartFlowBudgetTracker', tagline: 'A native SwiftUI budgeting architecture',
     description: 'An iOS project organized into ledger, input, analytics, retention, payment, and sync modules with Core Data persistence and explicit mock/local/remote AI modes.',
     year: 2025, category: ['mobile', 'ai'], technologies: ['Swift', 'SwiftUI', 'Core Data', 'CloudKit', 'StoreKit'], github: github('SmartFlowBudgetTracker'), featured: false, accent: '#ff806f',
@@ -246,7 +260,7 @@ export const projects: Project[] = [
   { id: 'plastic-simulation', name: 'Plastic Simulation', repoName: 'Plastic-Simulation', tagline: 'A compact browser simulation experiment', description: 'A small JavaScript, HTML, and CSS repository exploring an interactive plastic-themed simulation.', year: 2025, category: ['web', 'experiments'], technologies: ['JavaScript', 'HTML', 'CSS'], github: github('Plastic-Simulation'), featured: false, accent: '#f0ad6c' },
   { id: 'group-b-event-planner', name: 'Event Planner', repoName: 'Group-B---Event-Planner', tagline: 'A file-backed Python event manager', description: 'A Python CLI that creates, lists, updates, and removes dated events with persistent local file storage and tests.', year: 2026, category: ['tools', 'experiments'], technologies: ['Python'], github: github('Group-B---Event-Planner'), featured: false, accent: '#95cfb7' },
   { id: 'login-page', name: 'Login Page', repoName: 'Login-Page', tagline: 'A focused authentication UI exercise', description: 'A standalone login-page implementation built with HTML, CSS, and JavaScript.', year: 2024, category: ['web', 'experiments'], technologies: ['HTML', 'CSS', 'JavaScript'], github: github('Login-Page'), featured: false, accent: '#d0b8ff' },
-  { id: 'love-site', name: 'Love Site', repoName: 'love-site', tagline: 'A personal multimedia web experience', description: 'A TypeScript web project built around personal photography, video, music, lyrics, and small interaction sounds.', year: 2025, category: ['web', 'experiments'], technologies: ['TypeScript', 'Vite'], github: github('love-site'), featured: false, accent: '#ff91b8' },
+  { id: 'love-site', name: 'Love Site', repoName: 'love-site', tagline: 'A personal multimedia web experience', description: 'A TypeScript web project built around personal photography, video, music, lyrics, and small interaction sounds.', year: 2025, category: ['web', 'experiments'], technologies: ['TypeScript', 'Vite'], featured: false, accent: '#ff91b8' },
   { id: 'frc-example', name: 'FRC Example', repoName: 'FRC-Example', tagline: 'A WPILib command-based robot reference', description: 'A Java FRC project with Robot, RobotContainer, command, subsystem, Gradle, and WPILib configuration structure.', year: 2025, category: ['tools', 'experiments'], technologies: ['Java', 'WPILib', 'Gradle'], github: github('FRC-Example'), featured: false, accent: '#ffcb64' },
   { id: 'disaster-food-truck-unity', name: 'Disaster Food Truck Unity', repoName: 'DisasterFoodTruck_Unity', tagline: 'A Unity project repository', description: 'A public Unity project repository focused on a disaster food-truck concept; the public API does not expose enough source detail for broader claims.', year: 2025, category: ['game', 'experiments'], technologies: ['Unity'], github: github('DisasterFoodTruck_Unity'), featured: false, accent: '#e8a66d' },
   { id: 'vis-library', name: 'VIS Library', repoName: 'VIS-Library', tagline: 'A school library management system', description: 'A C# and SQL project with account, book, borrowing, report, validation, service, and HTML frontend files.', year: 2025, category: ['fullstack', 'tools'], technologies: ['C#', 'SQL', 'HTML', 'CSS', 'JavaScript'], github: github('VIS-Library'), liveUrl: 'https://vis.tp.edu.tw/', featured: false, accent: '#70b7ff' },
@@ -261,8 +275,8 @@ export const projects: Project[] = [
 ];
 
 export const featuredProjects = projects.filter((project) => project.featured);
-export const labProjects = projects.filter((project) => !project.featured && !project.fork && (project.category.includes('experiments') || project.category.includes('game')));
-export const archiveProjects = projects;
+export const labProjects = projects.filter((project) => project.github && !project.featured && !project.fork && (project.category.includes('experiments') || project.category.includes('game')));
+export const archiveProjects = projects.filter((project) => project.github);
 
 export function getProjectsByCategory(category: ProjectCategory): Project[] {
   return projects.filter((project) => project.category.includes(category));

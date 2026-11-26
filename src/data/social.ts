@@ -22,14 +22,14 @@ export const siteConfig = {
   title: 'Creative Developer · AI Engineer · Full-Stack Builder',
   description: 'Creative developer building local AI tools, real-time systems, applications, and interactive digital experiences.',
   github: 'https://github.com/5Gswatergod',
-  status: 'PUBLIC BUILD LOG ONLINE',
+  status: 'Public build log',
 };
 
 export const navItems = [
-  { id: 'work', label: 'WORK', href: '#work' },
-  { id: 'about', label: 'ABOUT', href: '#about' },
-  { id: 'lab', label: 'LAB', href: '#lab' },
-  { id: 'contact', label: 'CONTACT', href: '#contact' },
+  { id: 'work', label: 'Work', href: '#work' },
+  { id: 'about', label: 'About', href: '#about' },
+  { id: 'lab', label: 'Lab', href: '#lab' },
+  { id: 'contact', label: 'Contact', href: '#contact' },
 ];
 
 export const sections = [

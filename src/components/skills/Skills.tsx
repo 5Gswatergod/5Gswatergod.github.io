@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Braces, Boxes, Cpu, Database, Orbit, ServerCog } from 'lucide-react';
 import { skills, skillCategories, type Skill, type SkillCategory } from '@/data/skills';
 import { projects } from '@/data/projects';
 import { cn } from '@/lib/utils';
-import { gsap } from '@/lib/motion';
 
 const icons: Record<SkillCategory, React.ReactNode> = {
   languages: <Braces />, frameworks: <Boxes />, ai: <Cpu />, database: <Database />, infrastructure: <ServerCog />, creative: <Orbit />,
@@ -14,45 +13,47 @@ const icons: Record<SkillCategory, React.ReactNode> = {
 
 export function Skills() {
   const [selected, setSelected] = useState<Skill>(skills[0]);
-  const section = useRef<HTMLElement>(null);
+  const readout = useRef<HTMLElement>(null);
   const related = selected.projects.map((id) => projects.find((project) => project.id === id)).filter(Boolean);
 
-  useEffect(() => {
-    const media = gsap.matchMedia();
-    media.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.fromTo(section.current?.querySelectorAll('.skill-chip') ?? [], { scale: 0.84, opacity: 0 }, { scale: 1, opacity: 1, stagger: 0.025, duration: 0.55, ease: 'back.out(1.4)', scrollTrigger: { trigger: section.current, start: 'top 70%', once: true } });
-    });
-    return () => media.revert();
-  }, []);
+  const chooseSkill = (skill: Skill) => {
+    setSelected(skill);
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      requestAnimationFrame(() => {
+        readout.current?.focus({ preventScroll: true });
+        readout.current?.scrollIntoView({ block: 'start' });
+      });
+    }
+  };
 
   return (
-    <section id="skills" ref={section} className="section skills-section" aria-labelledby="skills-title">
+    <section id="skills" className="section skills-section" aria-labelledby="skills-title">
       <div className="section-inner">
         <div className="editorial-heading compact">
-          <div className="section-index"><span>05</span><i /><span>TECHNOLOGY CONSTELLATION</span></div>
-          <h2 id="skills-title">Evidence,<br /><em>not percentages.</em></h2>
+          <div className="section-index"><span>05</span><i /><span>Technologies</span></div>
+          <h2 id="skills-title">Technologies in use</h2>
           <p>Select a technology to trace it back to the public projects that use it.</p>
         </div>
         <div className="skills-console">
-          <div className="skill-groups">
+          <div id="technology-list" className="skill-groups" tabIndex={-1}>
             {skillCategories.map((category) => (
               <section key={category.id} className="skill-group" aria-labelledby={`skill-${category.id}`}>
                 <div className="skill-group-label">{icons[category.id]}<div><h3 id={`skill-${category.id}`}>{category.label}</h3><p>{category.description}</p></div></div>
                 <div className="skill-cloud">
                   {skills.filter((skill) => skill.category === category.id).map((skill) => (
-                    <button key={skill.id} className={cn('skill-chip', selected.id === skill.id && 'is-active')} onMouseEnter={() => setSelected(skill)} onFocus={() => setSelected(skill)} onClick={() => setSelected(skill)} aria-pressed={selected.id === skill.id}>
-                      {skill.name}<span>{String(skill.projects.length).padStart(2, '0')}</span>
+                    <button key={skill.id} className={cn('skill-chip', selected.id === skill.id && 'is-active')} onClick={() => chooseSkill(skill)} aria-pressed={selected.id === skill.id}>
+                      {skill.name}<span>{skill.projects.length}</span>
                     </button>
                   ))}
                 </div>
               </section>
             ))}
           </div>
-          <aside className="skill-readout" aria-live="polite">
-            <div className="readout-top"><span>SELECTED TECHNOLOGY</span><i /></div>
+          <aside ref={readout} className="skill-readout" aria-label={`Projects using ${selected.name}`} aria-live="polite" tabIndex={-1}>
+            <div className="readout-top"><span>Selected technology</span><i /></div>
             <h3>{selected.name}</h3>
             <p>{selected.description}</p>
-            <div className="readout-count"><strong>{related.length}</strong><span>PUBLIC PROJECT{related.length === 1 ? '' : 'S'}<br />USING THIS</span></div>
+            <div className="readout-count"><strong>{related.length}</strong><span>public project{related.length === 1 ? '' : 's'}</span></div>
             <div className="readout-projects">
               {related.map((project, index) => project && (
                 <Link href={`/projects/${project.id}`} key={project.id}>
@@ -60,6 +61,7 @@ export function Skills() {
                 </Link>
               ))}
             </div>
+            <a className="skill-back" href="#technology-list">Back to technologies ↑</a>
           </aside>
         </div>
       </div>

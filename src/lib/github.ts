@@ -1,15 +1,12 @@
-import { projects } from '@/data/projects';
+import snapshot from '@/data/github-snapshot.json';
 
 export interface GitHubRepo {
   id: number;
   name: string;
-  full_name: string;
   description: string | null;
   html_url: string;
   language: string | null;
-  updated_at: string;
   pushed_at: string;
-  fork: boolean;
 }
 
 interface GitHubUser {
@@ -38,43 +35,16 @@ const api = 'https://api.github.com';
 const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'HungYuan-Portfolio' };
 
 async function githubFetch<T>(path: string): Promise<T> {
-  const response = await fetch(`${api}${path}`, { headers, cache: 'force-cache' });
+  const response = await fetch(`${api}${path}`, { headers, cache: 'no-store' });
   if (!response.ok) throw new Error(`GitHub API ${response.status}`);
   return response.json() as Promise<T>;
-}
-
-function fallbackData(): GitHubData {
-  const languageCounts = new Map<string, number>();
-  projects.filter((project) => !project.fork).forEach((project) => {
-    const language = project.technologies.find((technology) => ['TypeScript', 'Python', 'JavaScript', 'Swift', 'Java', 'C#'].includes(technology));
-    if (language) languageCounts.set(language, (languageCounts.get(language) ?? 0) + 1);
-  });
-  return {
-    source: 'fallback',
-    publicRepos: 28,
-    memberSince: '2022-03-05T03:53:30Z',
-    lastProfileUpdate: '2026-09-05T01:15:35Z',
-    languages: [...languageCounts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count),
-    recentRepos: projects.filter((project) => !project.fork).slice(0, 6).map((project, index) => ({
-      id: index,
-      name: project.repoName,
-      full_name: `5Gswatergod/${project.repoName}`,
-      description: project.description,
-      html_url: project.github,
-      language: project.technologies[0] ?? null,
-      updated_at: `${project.year}-01-01T00:00:00Z`,
-      pushed_at: `${project.year}-01-01T00:00:00Z`,
-      fork: false,
-    })),
-    eventDays: {},
-  };
 }
 
 export async function getGitHubData(): Promise<GitHubData> {
   try {
     const [user, allRepos, events] = await Promise.all([
       githubFetch<GitHubUser>('/users/5Gswatergod'),
-      githubFetch<GitHubRepo[]>('/users/5Gswatergod/repos?per_page=100&sort=pushed'),
+      githubFetch<Array<GitHubRepo & { fork: boolean }>>('/users/5Gswatergod/repos?per_page=100&sort=pushed'),
       githubFetch<GitHubEvent[]>('/users/5Gswatergod/events/public?per_page=100'),
     ]);
     const repos = allRepos.filter((repo) => !repo.fork);
@@ -97,6 +67,6 @@ export async function getGitHubData(): Promise<GitHubData> {
       eventDays,
     };
   } catch {
-    return fallbackData();
+    return { ...snapshot, source: 'fallback', eventDays: {} };
   }
 }

@@ -1,0 +1,89 @@
+{
+  "publicRepos": 29,
+  "memberSince": "2022-03-05T03:53:30Z",
+  "lastProfileUpdate": "2026-11-20T20:49:20Z",
+  "languages": [
+    {
+      "name": "Python",
+      "count": 7
+    },
+    {
+      "name": "TypeScript",
+      "count": 7
+    },
+    {
+      "name": "CSS",
+      "count": 4
+    },
+    {
+      "name": "JavaScript",
+      "count": 3
+    },
+    {
+      "name": "C#",
+      "count": 1
+    },
+    {
+      "name": "HTML",
+      "count": 1
+    },
+    {
+      "name": "Java",
+      "count": 1
+    },
+    {
+      "name": "Swift",
+      "count": 1
+    }
+  ],
+  "recentRepos": [
+    {
+      "id": 1439311108,
+      "name": "avoid-overkill",
+      "description": "Model-agnostic coding agent skill to avoid overengineering while preserving necessary safeguards. 繁體中文工程技能。",
+      "html_url": "https://github.com/5Gswatergod/avoid-overkill",
+      "language": null,
+      "pushed_at": "2026-11-23T19:42:12Z"
+    },
+    {
+      "id": 1273708263,
+      "name": "Discord-Bot-2026",
+      "description": null,
+      "html_url": "https://github.com/5Gswatergod/Discord-Bot-2026",
+      "language": "TypeScript",
+      "pushed_at": "2026-11-09T14:01:47Z"
+    },
+    {
+      "id": 1281652806,
+      "name": "Mahjong",
+      "description": null,
+      "html_url": "https://github.com/5Gswatergod/Mahjong",
+      "language": "TypeScript",
+      "pushed_at": "2026-09-10T23:36:58Z"
+    },
+    {
+      "id": 1364602499,
+      "name": "5Gswatergod.github.io",
+      "description": "Interactive portfolio for HungYuan Lo",
+      "html_url": "https://github.com/5Gswatergod/5Gswatergod.github.io",
+      "language": "TypeScript",
+      "pushed_at": "2026-09-10T17:04:19Z"
+    },
+    {
+      "id": 1338249520,
+      "name": "Ollama-Models-Manager",
+      "description": null,
+      "html_url": "https://github.com/5Gswatergod/Ollama-Models-Manager",
+      "language": "Python",
+      "pushed_at": "2026-08-18T10:00:32Z"
+    },
+    {
+      "id": 1327076135,
+      "name": "MotorcycleTest",
+      "description": null,
+      "html_url": "https://github.com/5Gswatergod/MotorcycleTest",
+      "language": "TypeScript",
+      "pushed_at": "2026-08-07T19:25:16Z"
+    }
+  ]
+}
