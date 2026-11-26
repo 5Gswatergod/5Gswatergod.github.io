@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Terminal as TerminalIcon, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
 
 type Line = { id: number; tone?: 'accent' | 'error'; text: string };
 const names: Record<string, string> = {
@@ -17,10 +18,9 @@ export function Terminal() {
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [lines, setLines] = useState<Line[]>([
-    { id: 1, tone: 'accent', text: 'PORTFOLIO SHELL / REPOSITORY-BACKED MODE' },
+    { id: 1, tone: 'accent', text: 'Portfolio shell' },
     { id: 2, text: 'Type “help” to inspect available commands.' },
   ]);
-  const input = useRef<HTMLInputElement>(null);
   const output = useRef<HTMLDivElement>(null);
   const id = useRef(3);
   const write = (text: string, tone?: Line['tone']) => setLines((current) => [...current, { id: id.current++, text, tone }]);
@@ -28,15 +28,13 @@ export function Terminal() {
   useEffect(() => {
     const external = () => setOpen(true);
     const keyboard = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === '`') { event.preventDefault(); setOpen((current) => !current); }
-      if (event.key === 'Escape') setOpen(false);
+      if ((event.ctrlKey || event.metaKey) && event.key === '`' && !document.querySelector('.palette-backdrop[open], .lab-dialog-layer[open]')) { event.preventDefault(); setOpen((current) => !current); }
     };
     window.addEventListener('open-terminal', external);
     window.addEventListener('keydown', keyboard);
     return () => { window.removeEventListener('open-terminal', external); window.removeEventListener('keydown', keyboard); };
   }, []);
-  useEffect(() => { if (open) window.setTimeout(() => input.current?.focus(), 20); }, [open]);
-  useEffect(() => { output.current?.scrollTo({ top: output.current.scrollHeight }); }, [lines]);
+  useEffect(() => { output.current?.scrollTo({ top: output.current.scrollHeight }); }, [lines, open]);
 
   const execute = (raw: string) => {
     const command = raw.trim();
@@ -67,19 +65,18 @@ export function Terminal() {
 
   return (
     <>
-      <button className="terminal-trigger" onClick={() => setOpen(true)} aria-label="Open terminal" data-cursor="view"><TerminalIcon size={18} /><span>TERMINAL</span></button>
-      {open && <div className="terminal-backdrop" onMouseDown={(event) => event.currentTarget === event.target && setOpen(false)}>
-        <div className="terminal-window" role="dialog" aria-modal="true" aria-label="Portfolio terminal">
-          <header><div><i /><i /><i /></div><span>hungyuan@portfolio — zsh</span><button onClick={() => setOpen(false)} aria-label="Close terminal"><X size={16} /></button></header>
+      {open && <Modal className="terminal-backdrop" label="Portfolio terminal" onClose={() => setOpen(false)}>
+        <div className="terminal-window">
+          <header><span>hungyuan@portfolio</span><button onClick={() => setOpen(false)} aria-label="Close terminal"><X size={16} /></button></header>
           <div className="terminal-output-panel" ref={output}>{lines.map((line) => <p key={line.id} className={line.tone}>{line.text}</p>)}</div>
-          <label><span>hungyuan@portfolio:~$</span><input ref={input} value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => {
+          <label><span>hungyuan@portfolio:~$</span><input data-initial-focus value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => {
             if (event.key === 'Enter') execute(value);
             if (event.key === 'ArrowUp') { event.preventDefault(); const next = Math.max(0, historyIndex - 1); setHistoryIndex(next); setValue(history[next] ?? ''); }
             if (event.key === 'ArrowDown') { event.preventDefault(); const next = Math.min(history.length, historyIndex + 1); setHistoryIndex(next); setValue(history[next] ?? ''); }
-            if (event.key === 'Tab') { event.preventDefault(); const options = help.split(' · ').map((item) => item.split(' ')[0]); const matches = options.filter((item) => item.startsWith(value)); if (matches.length === 1) setValue(`${matches[0]} `); }
+            if (event.key === 'Tab') { const options = help.split(' · ').map((item) => item.split(' ')[0]); const matches = options.filter((item) => item.startsWith(value)); if (!event.shiftKey && matches.length === 1 && value !== matches[0]) { event.preventDefault(); setValue(`${matches[0]} `); } }
           }} aria-label="Terminal command" autoComplete="off" spellCheck={false} /></label>
         </div>
-      </div>}
+      </Modal>}
     </>
   );
 }

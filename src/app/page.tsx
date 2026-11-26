@@ -8,13 +8,19 @@ import { GitHubSection } from '@/components/github/GitHubSection';
 import { Contact } from '@/components/contact/Contact';
 import { Terminal } from '@/components/ui/Terminal';
 import { CommandPalette } from '@/components/ui/CommandPalette';
-import { CustomCursor } from '@/components/ui/CustomCursor';
 import { ExperienceLayer } from '@/components/ui/ExperienceLayer';
 import { getGitHubData } from '@/lib/github';
-import { featuredProjects } from '@/data/projects';
+import { archiveProjects, featuredProjects } from '@/data/projects';
+
+export const dynamic = 'force-static';
 
 export default async function Home() {
   const githubData = await getGitHubData();
+  const recentWork = githubData.recentRepos.flatMap((repo) => {
+    const project = archiveProjects.find((entry) => entry.repoName === repo.name);
+    return project ? [{ id: project.id, name: project.name, tagline: project.tagline }] : [];
+  }).slice(0, 3);
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'ProfilePage',
@@ -30,13 +36,12 @@ export default async function Home() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
-      <CustomCursor />
       <ExperienceLayer />
       <CommandPalette />
       <Terminal />
       <Navigation />
-      <main className="relative z-10 min-h-screen">
-        <Hero />
+      <main id="main-content" tabIndex={-1} className="relative z-10 min-h-screen">
+        <Hero recentWork={recentWork} />
         <About />
         <Projects />
         <Lab />

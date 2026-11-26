@@ -1,214 +1,175 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
-import * as THREE from 'three';
-import { ArrowDownRight } from 'lucide-react';
+import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { BufferGeometry, MathUtils, Vector3, type Group } from 'three';
+import Link from 'next/link';
+import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import type { Project } from '@/data/projects';
 import { siteConfig } from '@/data/social';
 
 const nodes = [
-  { id: 'ai', label: 'AI', position: [0, 1.55, 0] as const, color: '#67c7ff', target: 'skills' },
-  { id: 'web', label: 'WEB', position: [1.24, 0.48, 0.55] as const, color: '#7ce7d7', target: 'work' },
-  { id: 'systems', label: 'SYSTEMS', position: [-1.24, 0.55, 0.55] as const, color: '#aeb9ff', target: 'work' },
-  { id: 'games', label: 'GAMES', position: [-1.12, -0.75, -0.35] as const, color: '#ffb86b', target: 'lab' },
-  { id: 'automation', label: 'AUTOMATION', position: [1.14, -0.7, -0.42] as const, color: '#e79cff', target: 'lab' },
-  { id: 'mobile', label: 'MOBILE', position: [0, -1.62, 0.05] as const, color: '#ff806f', target: 'work' },
-];
+  { label: 'Local AI', project: 'Ollama Models Manager', slug: 'ollama-models-manager', detail: 'Verify local model archives before restoring them', target: 'skills', link: 'See technologies', point: [-1.36, 1.00, 0.42] },
+  { label: 'Web', project: 'Eco Chemists', slug: 'interactive-eco-site', detail: 'An interactive site for a school research project', target: 'work', link: 'See selected work', point: [0.48, 1.42, -0.30] },
+  { label: 'Systems', project: 'Hydrava', slug: 'discord-bot-2026', detail: 'A self-hosted Discord platform with a modular service stack', target: 'work', link: 'See selected work', point: [1.56, 0.56, 0.42] },
+  { label: 'Games', project: 'Taiwan Mahjong', slug: 'mahjong', detail: 'One TypeScript rules engine shared by client and server', target: 'lab', link: 'Explore the lab', point: [1.24, -1.00, -0.24] },
+  { label: 'Automation', project: 'Avoid Overkill', slug: 'avoid-overkill', detail: 'Review scenarios for engineering judgment in coding agents', target: 'lab', link: 'Explore the lab', point: [-0.42, -1.38, 0.42] },
+  { label: 'Mobile', project: 'AI Budget Tracker', slug: 'ai-budget-tracker', detail: 'A local-first mobile ledger with a rule-based fallback', target: 'work', link: 'See selected work', point: [-1.60, -0.60, -0.28] },
+] as const;
 
-const links = [[0, 1], [0, 2], [0, 4], [1, 4], [1, 5], [2, 3], [2, 5], [3, 5]];
+const accent = '#7ce7d7';
 
-function CoreNode({ node, reducedMotion }: { node: (typeof nodes)[number]; reducedMotion: boolean }) {
-  const mesh = useRef<THREE.Mesh>(null);
-
-  useFrame(({ clock }) => {
-    if (!mesh.current || reducedMotion) return;
-    mesh.current.rotation.y = clock.elapsedTime * 0.18;
-    mesh.current.rotation.x = Math.sin(clock.elapsedTime * 0.5) * 0.08;
-  });
-
+function FlatMap({ selected }: { selected: number }) {
+  const points = nodes.map(({ point: [x, y] }) => [x * 62, -y * 62]);
   return (
-    <group position={node.position}>
-      <mesh
-        ref={mesh}
-        onClick={() => document.getElementById(node.target)?.scrollIntoView({ behavior: 'smooth' })}
-        onPointerOver={() => { document.body.dataset.cursor = 'view'; }}
-        onPointerOut={() => { document.body.dataset.cursor = 'default'; }}
-      >
-        <icosahedronGeometry args={[0.27, 1]} />
-        <meshPhysicalMaterial color={node.color} roughness={0.28} metalness={0.18} transmission={0.42} thickness={0.45} emissive={node.color} emissiveIntensity={0.12} />
-      </mesh>
-      <Html center distanceFactor={8} position={[0, -0.48, 0]} style={{ pointerEvents: 'none' }}>
-        <span className="core-label">{node.label}</span>
-      </Html>
-    </group>
+    <svg className="map-fallback" viewBox="-165 -110 330 220" fill="none">
+      <path d={`M${points.map((point) => point.join(' ')).join('L')}Z`} stroke="#5c706e" />
+      {points.map(([x, y], index) => <path key={index} d={`M0 0L${x} ${y}`} stroke={selected === index ? accent : '#455453'} />)}
+      <path d="M0 -30L26 -15V15L0 30L-26 15V-15Z" fill="#243232" stroke="#627675" />
+      {points.map(([x, y], index) => <circle key={index} cx={x} cy={y} r={selected === index ? 9 : 6} fill={selected === index ? accent : '#738584'} />)}
+    </svg>
   );
 }
 
-function NetworkLines() {
-  const geometry = useMemo(() => {
-    const points = links.flatMap(([start, end]) => [
-      new THREE.Vector3(...nodes[start].position),
-      new THREE.Vector3(...nodes[end].position),
-    ]);
-    return new THREE.BufferGeometry().setFromPoints(points);
-  }, []);
-
-  useEffect(() => () => geometry.dispose(), [geometry]);
-
-  return (
-    <lineSegments geometry={geometry}>
-      <lineBasicMaterial color="#77cfff" transparent opacity={0.2} />
-    </lineSegments>
-  );
+class MapBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() { return this.state.failed ? this.props.fallback : this.props.children; }
 }
 
-function ParticleField({ reducedMotion }: { reducedMotion: boolean }) {
-  const points = useRef<THREE.Points>(null);
-  const positions = useMemo(() => Float32Array.from({ length: 240 }, (_, index) => ((((index * 9301 + 49297) % 233280) / 233280) - 0.5) * 7), []);
+function BuildMap({ selected, onSelect }: { selected: number; onSelect: (index: number) => void }) {
+  const group = useRef<Group>(null);
+  const invalidate = useThree((state) => state.invalidate);
+  const canvas = useThree((state) => state.gl.domElement);
+  const target = useRef({ x: 0, y: 0 });
+  const track = useMemo(() => new BufferGeometry().setFromPoints(nodes.map(({ point }) => new Vector3(...point))), []);
+  const spokes = useMemo(() => new BufferGeometry().setFromPoints(nodes.flatMap(({ point }) => [new Vector3(), new Vector3(...point)])), []);
+  const signal = useMemo(() => new BufferGeometry().setFromPoints([new Vector3(), new Vector3(...nodes[selected].point)]), [selected]);
 
-  useFrame(({ clock }) => {
-    if (!points.current || reducedMotion) return;
-    points.current.rotation.y = clock.elapsedTime * 0.018;
-    points.current.rotation.x = Math.sin(clock.elapsedTime * 0.08) * 0.08;
-  });
+  useEffect(() => () => { track.dispose(); spokes.dispose(); }, [track, spokes]);
+  useEffect(() => () => signal.dispose(), [signal]);
 
-  return (
-    <points ref={points}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-      </bufferGeometry>
-      <pointsMaterial color="#d4f6ff" size={0.018} transparent opacity={0.38} sizeAttenuation />
-    </points>
-  );
-}
-
-function DigitalCore({ reducedMotion }: { reducedMotion: boolean }) {
-  const group = useRef<THREE.Group>(null);
-
-  useFrame(({ pointer, clock }) => {
+  useFrame((_, delta) => {
     if (!group.current) return;
-    const pageProgress = typeof window === 'undefined' ? 0 : Math.min(window.scrollY / Math.max(window.innerHeight, 1), 1);
-    const targetScale = 1 - pageProgress * 0.24;
-    group.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), reducedMotion ? 1 : 0.08);
-    if (!reducedMotion) {
-      group.current.rotation.y += ((pointer.x * 0.2) + clock.elapsedTime * 0.025 - group.current.rotation.y) * 0.04;
-      group.current.rotation.x += ((-pointer.y * 0.16) - group.current.rotation.x) * 0.04;
-    }
-  });
-
-  return (
-    <group ref={group}>
-      <ParticleField reducedMotion={reducedMotion} />
-      <NetworkLines />
-      <mesh>
-        <sphereGeometry args={[0.58, 48, 48]} />
-        <meshPhysicalMaterial color="#07131a" roughness={0.18} metalness={0.55} transmission={0.5} thickness={0.8} emissive="#178bb2" emissiveIntensity={0.16} />
-      </mesh>
-      <mesh rotation={[Math.PI / 2.35, 0.3, 0]}>
-        <torusGeometry args={[0.92, 0.012, 8, 120]} />
-        <meshBasicMaterial color="#8eefff" transparent opacity={0.55} />
-      </mesh>
-      <mesh rotation={[0.4, 0.2, Math.PI / 2]}>
-        <torusGeometry args={[1.12, 0.008, 8, 120]} />
-        <meshBasicMaterial color="#8d9cff" transparent opacity={0.34} />
-      </mesh>
-      {nodes.map((node) => <CoreNode key={node.id} node={node} reducedMotion={reducedMotion} />)}
-    </group>
-  );
-}
-
-function BootOverlay({ onDone }: { onDone: () => void }) {
-  const [line, setLine] = useState(0);
-  const bootLines = ['MOUNTING PUBLIC REPOSITORIES', 'INDEXING BUILD SYSTEMS', 'CALIBRATING INTERACTIONS', 'READY'];
-
-  useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (sessionStorage.getItem('hl-booted') || reduced) {
-      onDone();
+    const { rotation } = group.current;
+    const point = nodes[selected].point;
+    const x = target.current.x + point[1] * .08;
+    const y = target.current.y + point[0] * .10;
+    if (Math.abs(rotation.x - x) + Math.abs(rotation.y - y) < 0.002) {
+      rotation.set(x, y, 0);
       return;
     }
-    const interval = window.setInterval(() => {
-      setLine((value) => {
-        if (value >= bootLines.length - 1) {
-          window.clearInterval(interval);
-          window.setTimeout(() => {
-            sessionStorage.setItem('hl-booted', '1');
-            onDone();
-          }, 160);
-          return value;
-        }
-        return value + 1;
-      });
-    }, 190);
-    return () => window.clearInterval(interval);
-  }, [onDone, bootLines.length]);
+    rotation.x = MathUtils.damp(rotation.x, x, 11, delta);
+    rotation.y = MathUtils.damp(rotation.y, y, 11, delta);
+    invalidate();
+  });
 
   return (
-    <div className="boot-screen" role="status" aria-live="polite">
-      <div className="boot-frame">
-        <div className="boot-kicker">5GS / PORTFOLIO</div>
-        <div className="boot-readout">{bootLines[line]}</div>
-        <div className="boot-track"><span style={{ width: `${((line + 1) / bootLines.length) * 100}%` }} /></div>
-        <div className="boot-index">0{line + 1} — 0{bootLines.length}</div>
-      </div>
-    </div>
+    <group
+      ref={group}
+      onPointerMove={(event) => {
+        if (event.pointerType !== 'mouse') return;
+        target.current = { x: -event.pointer.y * 0.18, y: event.pointer.x * 0.28 };
+        invalidate();
+      }}
+      onPointerLeave={() => { target.current = { x: 0, y: 0 }; invalidate(); }}
+    >
+      <mesh position={[0, 0, -1]}>
+        <planeGeometry args={[8, 5]} />
+        <meshBasicMaterial visible={false} />
+      </mesh>
+      <lineLoop geometry={track}><lineBasicMaterial color="#647e7b" /></lineLoop>
+      <lineSegments geometry={spokes}><lineBasicMaterial color="#526867" /></lineSegments>
+      <lineSegments geometry={signal}><lineBasicMaterial color={accent} /></lineSegments>
+      <mesh rotation={[0.2, 0.4, 0.2]}>
+        <icosahedronGeometry args={[0.57, 0]} />
+        <meshStandardMaterial color="#45625e" roughness={0.82} flatShading />
+      </mesh>
+      <mesh rotation={[0.2, 0.4, 0.2]}>
+        <icosahedronGeometry args={[0.58, 0]} />
+        <meshBasicMaterial color="#92b7b0" wireframe transparent opacity={0.45} />
+      </mesh>
+      {nodes.map(({ label, point }, index) => (
+        <group key={label} position={[...point]}>
+          <mesh
+            onPointerOver={() => { canvas.style.cursor = 'pointer'; }}
+            onPointerOut={() => { canvas.style.cursor = ''; }}
+            onClick={(event) => { event.stopPropagation(); onSelect(index); }}
+          >
+            <icosahedronGeometry args={[0.26, 0]} />
+            <meshBasicMaterial visible={false} />
+          </mesh>
+          <mesh>
+            <icosahedronGeometry args={[selected === index ? 0.20 : 0.15, 0]} />
+            <meshStandardMaterial color={selected === index ? accent : '#829c98'} roughness={0.76} flatShading />
+          </mesh>
+          {selected === index && <mesh>
+            <ringGeometry args={[0.27, 0.282, 6]} />
+            <meshBasicMaterial color={accent} />
+          </mesh>}
+        </group>
+      ))}
+    </group>
   );
 }
 
-export function Hero() {
-  const [booting, setBooting] = useState(true);
-  const [visible, setVisible] = useState(true);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const section = useRef<HTMLElement>(null);
-  const finishBoot = useCallback(() => setBooting(false), []);
+export function Hero({ recentWork }: { recentWork: Pick<Project, 'id' | 'name' | 'tagline'>[] }) {
+  const [selected, setSelected] = useState(3);
+  const [reducedMotion, setReducedMotion] = useState(true);
+  const node = nodes[selected];
+  const fallback = <FlatMap selected={selected} />;
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const sync = () => setReducedMotion(media.matches);
     sync();
     media.addEventListener('change', sync);
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { rootMargin: '15%' });
-    if (section.current) observer.observe(section.current);
-    return () => { media.removeEventListener('change', sync); observer.disconnect(); };
+    return () => media.removeEventListener('change', sync);
   }, []);
 
   return (
-    <>
-      {booting && <BootOverlay onDone={finishBoot} />}
-      <section id="hero" ref={section} className="hero-shell" aria-labelledby="hero-title">
-        <div className="grid-pattern" />
-        <div className="hero-vignette" />
-        <div className="hero-copy">
-          <div className="hero-serial"><span>HL–026</span><span>PUBLIC SYSTEMS INDEX</span></div>
-          <h1 id="hero-title" className="hero-name">
-            <span>HUNG</span><span>YUAN</span><span>LO</span>
-          </h1>
-          <div className="hero-role">
-            <span>{siteConfig.title}</span>
-            <p>I build software where engineering, AI, and interaction meet.</p>
-          </div>
+    <section id="hero" className="hero-shell" aria-labelledby="hero-title">
+      <div className="hero-copy">
+        <p className="hero-serial">Developer portfolio</p>
+        <h1 id="hero-title" className="hero-name">{siteConfig.name}</h1>
+        <div className="hero-role">
+          <p>I build tools for local AI, software for online communities, and games people play together.</p>
+          <a href="#work" className="hero-scroll">Explore selected work <ArrowDownRight size={16} aria-hidden="true" /></a>
         </div>
-        <div className="hero-core" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 0, 5.7], fov: 42 }}
-            dpr={[1, 1.5]}
-            frameloop={visible && !reducedMotion ? 'always' : 'demand'}
-            gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-          >
-            <ambientLight intensity={0.48} />
-            <directionalLight position={[4, 5, 6]} intensity={1.2} color="#c6f4ff" />
-            <pointLight position={[-4, -2, 3]} intensity={0.8} color="#6277ff" />
-            <DigitalCore reducedMotion={reducedMotion} />
-          </Canvas>
+      </div>
+      <section className="hero-map" aria-labelledby="build-map-title">
+        <header className="map-heading"><h2 id="build-map-title">Build map</h2><span>Choose a field</span></header>
+        <div className="map-stage" aria-hidden="true">
+          {fallback}
+          {!reducedMotion && <MapBoundary fallback={null}>
+            <Canvas camera={{ position: [0, 0, 6.4], fov: 33 }} dpr={[1, 1.5]} frameloop="demand" gl={{ antialias: true }}>
+              <color attach="background" args={['#101617']} />
+              <ambientLight intensity={1.4} />
+              <directionalLight position={[-3, 5, 5]} intensity={2.4} />
+              <BuildMap selected={selected} onSelect={setSelected} />
+            </Canvas>
+          </MapBoundary>}
         </div>
-        <div className="hero-footer">
-          <div className="system-status"><i />{siteConfig.status}</div>
-          <button onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })} className="hero-scroll" data-cursor="view">
-            ENTER THE SYSTEM <ArrowDownRight size={16} />
-          </button>
+        <div className="map-fields" role="group" aria-label="Project fields">
+          {nodes.map(({ label }, index) => <button key={label} type="button" aria-pressed={selected === index} onClick={() => setSelected(index)}>{label}</button>)}
+        </div>
+        <div className="map-readout">
+          <div key={node.label} className="map-description"><strong><Link href={`/projects/${node.slug}/`}>{node.project}</Link></strong><span>{node.detail}</span></div>
+          <span className="sr-only" role="status">{node.project}: {node.detail}</span>
+          <a href={`#${node.target}`}>{node.link}<ArrowUpRight size={16} aria-hidden="true" /></a>
         </div>
       </section>
-    </>
+      {recentWork.length > 0 && (
+        <nav className="hero-recent" aria-label="Recently updated projects">
+          <h2>Recently updated</h2>
+          {recentWork.map((project) => (
+            <a key={project.id} href={`/projects/${project.id}/`}>
+              <strong>{project.name}</strong><ArrowUpRight size={16} aria-hidden="true" />
+              <span>{project.tagline}</span>
+            </a>
+          ))}
+        </nav>
+      )}
+    </section>
   );
 }

@@ -1,21 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Lenis from 'lenis';
 
 export function ExperienceLayer() {
   const [devMode, setDevMode] = useState(false);
   const [signal, setSignal] = useState(false);
   const [metrics, setMetrics] = useState({ fps: 60, width: 0, height: 0, scroll: 0, x: 0, y: 0 });
-
-  useEffect(() => {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const lenis = new Lenis({ duration: 1.05, smoothWheel: true });
-    let frame = 0;
-    const tick = (time: number) => { lenis.raf(time); frame = requestAnimationFrame(tick); };
-    frame = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(frame); lenis.destroy(); };
-  }, []);
 
   useEffect(() => {
     let soundEnabled = localStorage.getItem('hl-sound') === 'on';
@@ -40,8 +30,7 @@ export function ExperienceLayer() {
     const keydown = (event: KeyboardEvent) => {
       keys = [...keys, event.key].slice(-sequence.length);
       if (keys.join('|').toLowerCase() === sequence.join('|').toLowerCase()) {
-        document.documentElement.classList.add('konami-glitch');
-        window.setTimeout(() => document.documentElement.classList.remove('konami-glitch'), 1400);
+        showSignal();
         keys = [];
       }
     };
@@ -77,5 +66,5 @@ export function ExperienceLayer() {
     return () => { cancelAnimationFrame(frame); window.removeEventListener('pointermove', pointer); };
   }, [devMode]);
 
-  return <>{signal && <div className="signal-overlay" role="status"><span>ALTERNATE SIGNAL PATH ACTIVE</span></div>}{devMode && <aside className="dev-hud" aria-live="polite"><b>DEV MODE</b><span>{metrics.fps} FPS</span><span>{metrics.width} × {metrics.height}</span><span>SCROLL {metrics.scroll}</span><span>POINTER {metrics.x},{metrics.y}</span></aside>}</>;
+  return <>{signal && <div className="signal-overlay" role="status"><span>Alternate signal path active</span></div>}{devMode && <aside className="dev-hud" aria-live="polite"><b>Developer mode</b><span>{metrics.fps} FPS</span><span>{metrics.width} × {metrics.height}</span><span>Scroll {metrics.scroll}</span><span>Pointer {metrics.x},{metrics.y}</span></aside>}</>;
 }
